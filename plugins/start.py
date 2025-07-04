@@ -1,7 +1,3 @@
-# Don't Remove Credit @VJ_Botz
-# Subscribe YouTube Channel For Amazing Bot @Tech_VJ
-# Ask Doubt on telegram @KingVJ01
-
 import random
 import requests
 import humanize
@@ -14,15 +10,6 @@ from plugins.database import checkdb, db, get_count, get_withdraw, record_withdr
 from urllib.parse import quote_plus, urlencode
 from TechVJ.util.file_properties import get_name, get_hash, get_media_file_size
 from TechVJ.util.human_readable import humanbytes
-import os # <-- এই লাইনটা যোগ করা হয়েছে
-import logging # <-- এই লাইনটা যোগ করা হয়েছে
-
-# logging কনফিগারেশন যোগ করা হয়েছে (যদি bot.py তে না থাকে বা আরও বিস্তারিত লগিং চাও)
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logging.getLogger("pyrogram").setLevel(logging.ERROR) # Pyrogram এর লগ কমাতে
 
 async def encode(string):
     string_bytes = string.encode("ascii")
@@ -33,7 +20,7 @@ async def encode(string):
 async def decode(base64_string):
     base64_string = base64_string.strip("=") # links generated before this commit will be having = sign, hence striping them to handle padding errors.
     base64_bytes = (base64_string + "=" * (-len(base64_string) % 4)).encode("ascii")
-    string_bytes = base64.urlsafe_b64decode(base64_bytes)
+    string_bytes = base64.urlsafe_b64decode(base64_bytes) 
     string = string_bytes.decode("ascii")
     return string
 
@@ -41,7 +28,7 @@ async def decode(base64_string):
 async def start(client, message):
     if not await checkdb.is_user_exist(message.from_user.id):
         await db.add_user(message.from_user.id, message.from_user.first_name)
-        name = await client.ask(message.chat.id, "<b>Welcome To VJ Disk.\n\nIts Time To Create Account On VJ Disk\n\nNow Send Me Your Business Name Which Show On Website\nEx :- <code>Tech VJ</code></b>")
+        name = await client.ask(message.chat.id, "<b>Welcome To VJ Disk.\n\nIts Time To Create Account On VJ Disk\n\nNow Send Me Your Business Name Which Show On Website\nEx :- <code>Ctg Movie</code></b>")
         if name.text:
             await db.set_name(message.from_user.id, name=name.text)
         else:
@@ -93,40 +80,6 @@ async def stream_start(client, message):
     encoded_url = f"{LINK_URL}?Tech_VJ={link}"
     rm=InlineKeyboardMarkup([[InlineKeyboardButton("🖇️ Open Link", url=encoded_url)]])
     await message.reply_text(text=f"<code>{encoded_url}</code>", reply_markup=rm)
-
-    # --- এখানে ওয়েবসাইটকে ডেটা পাঠানোর লজিক যোগ করা হয়েছে ---
-    WEBSITE_API_URL = os.environ.get("WEBSITE_API_URL")
-    BOT_SECRET_KEY = os.environ.get("BOT_SECRET_KEY")
-
-    if WEBSITE_API_URL and BOT_SECRET_KEY:
-        # ফাইল থেকে নাম এবং সাইজ বের করার চেষ্টা
-        file_name = get_name(message) # TechVJ/util/file_properties.py থেকে
-        file_size_bytes = get_media_file_size(message) # TechVJ/util/file_properties.py থেকে
-        file_size_human = humanbytes(file_size_bytes) # TechVJ/util/human_readable.py থেকে
-
-        payload = {
-            "link": encoded_url,  # বট দ্বারা জেনারেট করা স্টিম লিঙ্ক
-            "title": file_name if file_name else "Untitled Movie", # ফাইলের নাম
-            "quality": "Unknown", # যেহেতু সরাসরি ফাইল, কোয়ালিটি জানা নেই
-            "size": file_size_human # ফাইলের সাইজ (যেমন 100MB)
-        }
-
-        headers = {
-            "Content-Type": "application/json",
-            "X-Bot-Secret-Key": BOT_SECRET_KEY # এটি ওয়েবসাইটের সিকিউরিটি কী
-        }
-
-        try:
-            logging.info(f"Sending data to website from stream_start: {payload.get('link')}")
-            response = requests.post(WEBSITE_API_URL, json=payload, headers=headers)
-            response.raise_for_status()  # HTTP এরর হলে এক্সেপশন তৈরি করবে
-            logging.info(f"Website responded to stream_start: {response.status_code} - {response.text}")
-        except requests.exceptions.RequestException as e:
-            logging.error(f"Failed to send data to website from stream_start: {e}")
-    else:
-        logging.warning("WEBSITE_API_URL or BOT_SECRET_KEY not set for stream_start. Skipping website post.")
-    # --- ওয়েবসাইটকে ডেটা পাঠানোর লজিক শেষ ---
-
 
 @Client.on_message(filters.private & filters.command("quality"))
 async def quality_link(client, message):
@@ -229,38 +182,7 @@ async def quality_link(client, message):
         link = await encode(url1)
         encoded_url = f"{LINK_URL}?Tech_VJ={link}"
         rm=InlineKeyboardMarkup([[InlineKeyboardButton("🖇️ Open Link", url=encoded_url)]])
-        await message.reply_text(text=f"<code>{encoded_url}</code>", reply_markup=rm)
-
-        # --- এখানে ওয়েবসাইটকে ডেটা পাঠানোর লজিক যোগ করা হয়েছে (যদি দুটি কোয়ালিটি নির্বাচন করা হয়) ---
-        WEBSITE_API_URL = os.environ.get("WEBSITE_API_URL")
-        BOT_SECRET_KEY = os.environ.get("BOT_SECRET_KEY")
-
-        if WEBSITE_API_URL and BOT_SECRET_KEY:
-            movie_title = f"Multi-Quality Stream (IDs: {first_id}, {second_id}, {third_id})"
-            
-            payload = {
-                "link": encoded_url,
-                "title": movie_title,
-                "quality": "Multi-Quality", # একাধিক কোয়ালিটি বোঝাতে
-                "size": "N/A" # একাধিক ফাইলের সাইজ এখানে একবারে পাঠানো কঠিন
-            }
-
-            headers = {
-                "Content-Type": "application/json",
-                "X-Bot-Secret-Key": BOT_SECRET_KEY
-            }
-
-            try:
-                logging.info(f"Sending data to website from quality_link (getlink): {payload.get('link')}")
-                response = requests.post(WEBSITE_API_URL, json=payload, headers=headers)
-                response.raise_for_status()
-                logging.info(f"Website responded to quality_link (getlink): {response.status_code} - {response.text}")
-            except requests.exceptions.RequestException as e:
-                logging.error(f"Failed to send data to website from quality_link (getlink): {e}")
-        else:
-            logging.warning("WEBSITE_API_URL or BOT_SECRET_KEY not set for quality_link (getlink). Skipping website post.")
-        # --- ওয়েবসাইটকে ডেটা পাঠানোর লজিক শেষ ---
-        return # Double পোস্ট এড়ানোর জন্য এখানে রিটার্ন করা হয়েছে
+        return await message.reply_text(text=f"<code>{encoded_url}</code>", reply_markup=rm)
     else:
         return await message.reply("Choose Quality From Above Three Quality Only. Send /quality commamd again to start creating link.")
 
@@ -270,36 +192,6 @@ async def quality_link(client, message):
     encoded_url = f"{LINK_URL}?Tech_VJ={link}"
     rm=InlineKeyboardMarkup([[InlineKeyboardButton("🖇️ Open Link", url=encoded_url)]])
     await message.reply_text(text=f"<code>{encoded_url}</code>", reply_markup=rm)
-
-    # --- এখানে ওয়েবসাইটকে ডেটা পাঠানোর লজিক যোগ করা হয়েছে (যদি তিনটি কোয়ালিটি নির্বাচন করা হয়) ---
-    WEBSITE_API_URL = os.environ.get("WEBSITE_API_URL")
-    BOT_SECRET_KEY = os.environ.get("BOT_SECRET_KEY")
-
-    if WEBSITE_API_URL and BOT_SECRET_KEY:
-        movie_title = f"Multi-Quality Stream (IDs: {first_id}, {second_id}, {third_id})"
-        
-        payload = {
-            "link": encoded_url,
-            "title": movie_title,
-            "quality": "Multi-Quality",
-            "size": "N/A"
-        }
-
-        headers = {
-            "Content-Type": "application/json",
-            "X-Bot-Secret-Key": BOT_SECRET_KEY
-        }
-
-        try:
-            logging.info(f"Sending data to website from quality_link (final): {payload.get('link')}")
-            response = requests.post(WEBSITE_API_URL, json=payload, headers=headers)
-            response.raise_for_status()
-            logging.info(f"Website responded to quality_link (final): {response.status_code} - {response.text}")
-        except requests.exceptions.RequestException as e:
-            logging.error(f"Failed to send data to website from quality_link (final): {e}")
-    else:
-        logging.warning("WEBSITE_API_URL or BOT_SECRET_KEY not set for quality_link (final). Skipping website post.")
-    # --- ওয়েবসাইটকে ডেটা পাঠানোর লজিক শেষ ---
 
 @Client.on_message(filters.private & filters.text & ~filters.command(["account", "withdraw", "notify", "quality", "start", "update"]))
 async def link_start(client, message):
@@ -336,7 +228,7 @@ async def show_account(client, message):
         formatted_balance = f"{balance:.2f}"  # Format to 2 decimal places
         response = f"<b>Your Api Key :- <code>{message.from_user.id}</code>\n\nVideo Plays :- {link_clicks} ( Delay To Show Data )\n\nBalance :- ${formatted_balance}</b>"
     else:
-        response = f"<b>Your Api Key :- <code>{message.from_user.id}</code>\nVideo Plays :- 0 ( Delay To Show Data )\nBalance :- $0</b>"
+        response = f"<b>Your Api Key :- <code>{message.from_user.id}</code>\nVideo Plays :- 0 ( Delay To Show Data )\nBalance :- $0</b>" 
     await message.reply(response)
 
 @Client.on_message(filters.private & filters.command("withdraw"))
@@ -416,3 +308,4 @@ async def show_notify(client, message):
                 record_withdraw(user_id.text, False)
                 await client.send_message(user_id.text, f"Your Payment Cancelled - {reason.text}")
     await message.reply("Successfully Message Send.")
+    
