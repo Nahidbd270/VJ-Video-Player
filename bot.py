@@ -31,15 +31,18 @@ from TechVJ.bot.clients import initialize_clients
 
 ppath = "plugins/*.py"
 files = glob.glob(ppath)
-TechVJBot.start()
-TechVJBackUpBot.start()
-# DeprecationWarning সমাধান করা হয়েছে:
-loop = asyncio.get_running_loop() # এই লাইনটি পরিবর্তন করা হয়েছে
 
+# লুপ সম্পর্কিত লাইনটি সরিয়ে দেওয়া হয়েছে, কারণ asyncio.run() নিজেই লুপ পরিচালনা করবে
+# TechVJBot.start() এবং TechVJBackUpBot.start() asynchronous হওয়া উচিত এবং start() এর ভেতর কল করা উচিত।
+# যদি .start() সিনক্রোনাস হয়, তাহলে এখানে রাখতে পারেন।
+# আপনার বর্তমান লগে এগুলো সিনক্রোনাস মনে হচ্ছে।
 
 async def start():
     print('\n')
     print('Initalizing Your Bot')
+    await TechVJBot.start() # এখানে .start() কে await করুন যদি এটি একটি async ফাংশন হয়
+    await TechVJBackUpBot.start() # এখানে .start() কে await করুন যদি এটি একটি async ফাংশন হয়
+
     bot_info = await TechVJBot.get_me()
     await initialize_clients()
     for name in files:
@@ -70,6 +73,8 @@ async def start():
 
 if __name__ == '__main__':
     try:
-        loop.run_until_complete(start())
+        # asyncio.run() ব্যবহার করুন যা একটি ইভেন্ট লুপ তৈরি ও পরিচালনা করে।
+        asyncio.run(start())
     except KeyboardInterrupt:
         logging.info('Service Stopped Bye 👋')
+
