@@ -12,7 +12,7 @@ API_HASH = environ.get('API_HASH', 'fd88d7339b0371eb2a9501d523f3e2a7')
 BOT_TOKEN = environ.get('BOT_TOKEN', "")
 
 # Admin Telegram Account Id For Withdraw Notification Or Anything Else
-ADMIN = int(environ.get('ADMIN', '8172129114 5370676246'))
+ADMIN = int(environ.get('ADMIN', '8172129114'))
 
 # Back Up Bot Token For Fetching Message When Floodwait Comes
 BACKUP_BOT_TOKEN = environ.get('BACKUP_BOT_TOKEN', "")
