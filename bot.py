@@ -17,11 +17,11 @@ logging.basicConfig(
 logging.getLogger("aiohttp").setLevel(logging.ERROR)
 logging.getLogger("aiohttp.web").setLevel(logging.ERROR)
 
-from pyrogram import Client, idle 
+from pyrogram import Client, idle
 from info import *
 from typing import Union, Optional, AsyncGenerator
-from Script import script 
-from datetime import date, datetime 
+from Script import script
+from datetime import date, datetime
 from aiohttp import web
 from plugins import web_server
 
@@ -33,7 +33,8 @@ ppath = "plugins/*.py"
 files = glob.glob(ppath)
 TechVJBot.start()
 TechVJBackUpBot.start()
-loop = asyncio.get_event_loop()
+# DeprecationWarning সমাধান করা হয়েছে:
+loop = asyncio.get_running_loop() # এই লাইনটি পরিবর্তন করা হয়েছে
 
 
 async def start():
@@ -72,4 +73,3 @@ if __name__ == '__main__':
         loop.run_until_complete(start())
     except KeyboardInterrupt:
         logging.info('Service Stopped Bye 👋')
-
